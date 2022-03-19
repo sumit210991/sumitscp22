@@ -9,7 +9,7 @@ class UserClient:
         api_key = None
         payload = {
             'username': form.username.data,
-            'password': form.password.data
+            'password': form.password.data,
         }
 
         url = USER_API_URL + '/api/user/login'
@@ -35,7 +35,8 @@ class UserClient:
         user = None
         payload = {
             'password': form.password.data,
-            'username': form.username.data
+            'username': form.username.data,
+            'role': form.role.data
         }
         url = USER_API_URL + '/api/user/create'
         response = requests.request("POST", url=url, data=payload)

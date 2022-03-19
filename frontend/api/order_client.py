@@ -9,7 +9,6 @@ class OrderClient:
         header = {'Authorization': session['user_api_key']}
 
         response = requests.get(ORDER_API_URL + '/api/order', headers=header)
-        print(response)
         return response.json()
 
     @staticmethod
@@ -23,6 +22,7 @@ class OrderClient:
         response = requests.post(ORDER_API_URL + '/api/order/add-item',
                                  data=payload,
                                  headers=header)
+                                 
         return response.json()
 
     @staticmethod

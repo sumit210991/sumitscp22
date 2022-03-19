@@ -5,6 +5,7 @@ import forms
 from api.book_client import BookClient
 from api.user_api import UserClient
 from api.order_client import OrderClient
+from werkzeug.utils import secure_filename
 
 blueprint = Blueprint('frontend', __name__)
 
@@ -23,7 +24,8 @@ def cart_count():
 @blueprint.route('/', methods=['GET'])
 def index():
     if current_user.is_authenticated:
-        session['order'] = OrderClient.get_order_from_session()
+        #session['order'] = OrderClient.get_order_from_session()
+         session['order']={}
     try:
         books = BookClient.get_books()
     except:
@@ -63,11 +65,13 @@ def login():
                 session['user_api_key'] = api_key
                 user = UserClient.get_user()
                 session['user'] = user['result']
+                print(session['user'].get("role"))
 
-                order = OrderClient.get_order()
-                if order.get('result'):
-                    session['order'] = order['result']
-
+                #order = OrderClient.get_order()
+                #if order.get('result'):
+                 #   session['order'] = order['result']
+                session['books']=BookClient.get_books()
+                session['order'] = {}
                 flash('Welcome back')
                 return redirect(url_for('frontend.index'))
             else:
@@ -98,6 +102,7 @@ def book_details(slug):
             return redirect(url_for('frontend.login'))
 
         order = OrderClient.add_to_cart(book_id=book['id'], quantity=1)
+       
         session['order'] = order['result']
         flash("Book added to the cart")
 
@@ -139,3 +144,28 @@ def thank_you():
     flash("Your order is processing.")
 
     return render_template('thankyou.html')
+
+@blueprint.route('/add_book', methods=['POST','GET'])
+def add_book():
+    form = forms.AddNewBookForm()
+    if request.method == 'POST':
+        
+        if form.validate_on_submit():
+            bookname = form.name.data
+            f = form.upload.data
+            #filename = files.save(form.photo.data)
+            filename = secure_filename(f.filename)
+            #filename = secure_filename(form.file.data.filename)
+            print(filename)
+            f.save('uploads/' + filename)
+            #print(form.file.data)
+            #form.newbook.data.save('uploads/' + filename)
+            book = BookClient.add_book(form)
+            if book:
+                flash("book added.")
+            else:
+                flash('book not added'+bookname)
+                #return render_template('thankyou.html')
+        #if form.is_submitted():
+         #   print(form.upload)
+    return render_template('add_book.html', form=form)

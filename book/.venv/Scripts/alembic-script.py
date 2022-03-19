@@ -1,4 +1,4 @@
-#!s:\micro\book\.venv\scripts\python.exe
+#!"d:\semester 2\ssp\scp\scp\book\.venv\scripts\python.exe"
 # EASY-INSTALL-ENTRY-SCRIPT: 'alembic==1.6.2','console_scripts','alembic'
 __requires__ = 'alembic==1.6.2'
 import re

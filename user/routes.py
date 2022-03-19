@@ -27,7 +27,7 @@ def create_user():
                                                method='sha256')
 
         user.is_admin = False
-
+        user.role=request.form["role"]
         db.session.add(user)
         db.session.commit()
 

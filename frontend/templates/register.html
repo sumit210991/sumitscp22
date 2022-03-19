@@ -15,6 +15,15 @@
                 {{ form.password.label(class_="form-label") }}:
                 {{ form.password(class_="form-control") }}
             </div>
+            <div class="form-group">
+                {% for subfield in form.role %}
+                <tr>
+                <td>{{ subfield }}</td>
+                <td>{{ subfield.label }}</td>
+                </tr>
+                {% endfor %}
+                
+            </div>
             {{ form.submit(class_="w-100 btn btn-primary mt-3") }}
 
         </form>

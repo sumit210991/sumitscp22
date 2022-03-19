@@ -2,15 +2,18 @@ from flask import Flask
 from flask.sessions import SecureCookieSessionInterface
 from flask_migrate import Migrate
 from flask_login import LoginManager
-import models
+#from models import db, User,init_app
+import models 
 from routes import user_blueprint
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'vZK7siKrV8BL46KsyAIPoQ'
+app.config['SECRET_KEY'] = 'FmJ94aHQwIcNcvcoLu0B0A'
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///./database/user.db'
+app.config['SQLALCHEMY_DATABASE_URI']='postgresql://postgres:Advik%4009@localhost/user'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///./database/user.db'
-models.init_app(app)
+
 app.register_blueprint(user_blueprint)
+models.init_app(app)
 login_manager = LoginManager(app)
 migrate = Migrate(app, models.db)
 
