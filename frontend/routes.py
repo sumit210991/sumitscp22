@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, session, redirect, request, flash, url_for
+from flask import Blueprint, render_template, session, redirect, request, flash, url_for, send_file, send_from_directory
 from flask_login import current_user
 
 import forms
@@ -6,9 +6,42 @@ from api.book_client import BookClient
 from api.user_api import UserClient
 from api.order_client import OrderClient
 from werkzeug.utils import secure_filename
+from apiclient.discovery import build
+from google_auth_oauthlib.flow import InstalledAppFlow
+import pickle
+from datetime import datetime, timedelta
 
 blueprint = Blueprint('frontend', __name__)
 
+def get_event():
+    event =            {
+  'summary': 'Google I/O 2015',
+  'location': '800 Howard St., San Francisco, CA 94103',
+  'description': 'A chance to hear more about Google\'s developer products.',
+  'start': {
+    'dateTime': '2015-05-28T09:00:00-07:00',
+    'timeZone': 'America/Los_Angeles',
+  },
+  'end': {
+    'dateTime': '2015-05-28T17:00:00-07:00',
+    'timeZone': 'America/Los_Angeles',
+  },
+  'recurrence': [
+    'RRULE:FREQ=DAILY;COUNT=2'
+  ],
+  'attendees': [
+    {'email': 'lpage@example.com'},
+    {'email': 'sbrin@example.com'},
+  ],
+  'reminders': {
+    'useDefault': False,
+    'overrides': [
+      {'method': 'email', 'minutes': 24 * 60},
+      {'method': 'popup', 'minutes': 10},
+    ],
+  },
+}
+    return event
 
 @blueprint.context_processor
 def cart_count():
@@ -149,23 +182,64 @@ def thank_you():
 def add_book():
     form = forms.AddNewBookForm()
     if request.method == 'POST':
-        
         if form.validate_on_submit():
             bookname = form.name.data
-            f = form.upload.data
-            #filename = files.save(form.photo.data)
-            filename = secure_filename(f.filename)
-            #filename = secure_filename(form.file.data.filename)
-            print(filename)
-            f.save('uploads/' + filename)
-            #print(form.file.data)
-            #form.newbook.data.save('uploads/' + filename)
             book = BookClient.add_book(form)
             if book:
+                f = form.upload.data
+                filename = secure_filename(f.filename)
+                print(filename)
+                f.save('uploads/' + bookname+'.pdf')
                 flash("book added.")
             else:
                 flash('book not added'+bookname)
-                #return render_template('thankyou.html')
-        #if form.is_submitted():
-         #   print(form.upload)
+    
     return render_template('add_book.html', form=form)
+
+@blueprint.route('/google_api', methods=['POST','GET'])
+def google_api():
+    scopes = ['https://www.googleapis.com/auth/calendar']
+    flow = InstalledAppFlow.from_client_secrets_File("client_secret.json", scopes=scopes)
+    flow.run_console()
+
+   
+@blueprint.route('/search_books', methods=['POST','GET'])
+def search_books():
+    if current_user.is_authenticated:
+        #session['order'] = OrderClient.get_order_from_session()
+         session['order']={}
+    try:
+        books = BookClient.get_books()
+    except:
+        books = {'result': []}
+   
+    return render_template('search_book.html', books=books)
+
+@blueprint.route('/download/<name>', methods=['GET'])
+def download(name):
+    #path = "uploads/"+str(name)+".pdf"
+    #return(send_file(path, as_attachment=True)
+    flash("file download")
+    return send_from_directory(directory='uploads', filename=name+".pdf", as_attachment=True, path='D:\Semester 2\SSP\scp\SCP\frontend')
+    
+
+@blueprint.route('/classroom_booking', methods=['GET','POST'])
+def classroom_booking():
+    students=UserClient.get_users()
+    return render_template('book_meeting.html', students=students)
+
+@blueprint.route('/block_calendar', methods=['GET', 'POST'])
+def block_calender():
+    form = request.form
+    if request.method == 'POST':
+        studentsid = form.get('studentids')
+        studentnames=form.get('studentsmeet')
+        print(studentsid)
+        print(studentnames)
+    flash("Notified "+ str(studentnames))
+    students=UserClient.get_users()
+    return render_template('book_meeting.html', students=students)
+   
+    
+
+    

@@ -16,12 +16,18 @@ def get_all_books():
 @book_blueprint.route('/create', methods=['POST'])
 def create_books():
     try:
+        #upload_file=Upload_File()
+        #if(upload_file.create_bucket('elearningbucket')):
+          #          isFileUploaded=upload_file.upload_file('elearningbucket',magazineContent,magzineName+'.pdf')
         book = Book()
         book.name = request.form['name']
         book.slug = request.form['slug']
         book.image = request.form['image']
         book.price = request.form['price']
-
+        #file_content=request.FILES['upload']
+        #if(upload_file.create_bucket('elearningbucket')):
+         #   isFileUploaded=upload_file.upload_file('elearningbucket',file_content,book.name)
+          #  print(isFileUploaded)
         db.session.add(book)
         db.session.commit()
 
@@ -42,3 +48,7 @@ def book_details(slug):
         response = {"message":"No books found"}
 
     return jsonify(response)
+
+    
+
+    

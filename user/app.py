@@ -9,7 +9,7 @@ from routes import user_blueprint
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'FmJ94aHQwIcNcvcoLu0B0A'
 #app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///./database/user.db'
-app.config['SQLALCHEMY_DATABASE_URI']='postgresql://postgres:__urpassword__@localhost/user'
+app.config['SQLALCHEMY_DATABASE_URI']='postgresql://postgres:Advik%4009@localhost/user'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 app.register_blueprint(user_blueprint)

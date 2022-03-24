@@ -50,3 +50,11 @@ class UserClient:
 
         response = requests.get(url)
         return response.status_code == 200
+
+    @staticmethod
+    def get_users():
+        url = USER_API_URL + '/api/user/all'
+        response = requests.get(url)
+        return response.json()
+
+
