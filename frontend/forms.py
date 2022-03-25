@@ -13,8 +13,9 @@ class LoginForm(FlaskForm):
 
 class RegistrationForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
-    password = PasswordField('Password', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired(8)])
     role=RadioField('Role', choices=[('teacher','teacher'),('student','student')])
+    email = StringField('Email', validators=[DataRequired()])
     submit = SubmitField('Register')
 
 

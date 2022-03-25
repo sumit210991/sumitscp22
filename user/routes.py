@@ -28,6 +28,7 @@ def create_user():
 
         user.is_admin = False
         user.role=request.form["role"]
+        user.email=request.form["email"]
         db.session.add(user)
         db.session.commit()
 

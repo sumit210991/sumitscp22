@@ -22,6 +22,7 @@ class User(db.Model, UserMixin):
     is_active = db.Column(db.Boolean, default=True)
     authenticated = db.Column(db.Boolean, default=False)
     role=db.Column(db.String(100))
+    email = db.Column(db.String(100))
 
     def __repr__(self):
         return f'<user {self.id}, {self.username}>'
