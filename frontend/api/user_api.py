@@ -58,4 +58,9 @@ class UserClient:
         response = requests.get(url)
         return response.json()
 
+    @staticmethod
+    def get_userbyid(id):
+        response = requests.get(USER_API_URL + '/api/user/' + id)
+        return response.json()
+
 

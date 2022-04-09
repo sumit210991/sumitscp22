@@ -4,11 +4,13 @@ from flask_login import current_user
 import forms
 from api.book_client import BookClient
 from api.user_api import UserClient
-from api.order_client import OrderClient
+from api.classroom_api import ClassroomClient
 from werkzeug.utils import secure_filename
 from apiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 import pickle
+import requests
+import json
 from datetime import datetime, timedelta
 
 blueprint = Blueprint('frontend', __name__)
@@ -234,12 +236,110 @@ def block_calender():
     if request.method == 'POST':
         studentsid = form.get('studentids')
         studentnames=form.get('studentsmeet')
-        print(studentsid)
-        print(studentnames)
+        meetingtime=form.get('Meetingtime')
+        meetingduration=form.get('meeting_duration')
+        meetingtitle=form.get('meeting_information')
+        attendent_emails=[]
+        organizer_email=session['user'].get("email")
+        idarray = studentsid.split(',')
+        for id in idarray:
+            userdetail = UserClient.get_userbyid(id)
+            attendent_email=userdetail["result"].get("email")
+            attendent_emails.append({"email":attendent_email})
+        attendent_emails.append({"email":organizer_email })
+        #print('attendent email are'+attendent_emails)
+        use_google_calender(meetingtime, attendent_emails, meetingduration,meetingtitle)
+        saved_classroom=ClassroomClient.create_classroom(form)
+        session['classroom'] = saved_classroom['result']
     flash("Notified "+ str(studentnames))
     students=UserClient.get_users()
     return render_template('book_meeting.html', students=students)
-   
-    
 
+
+def use_google_calender(state_date, emails,meetingduration, title):
+    credentials=pickle.load(open("token.pkl", "rb"))
+    print(credentials)
+    #start_time=datetime(2022, 3, 22, 19, 30)
+    start_time=datetime.strptime(state_date, '%Y-%m-%dT%H:%M')
+    end_time=start_time+timedelta(hours=float(meetingduration))
+    time_zone='Asia/Kolkata'
+    if credentials: 
+        service = build("calendar", "v3", credentials=credentials)
+        result=service.calendarList().list().execute()
+        print(result['items'][0]['id'])
+        calender_id=result['items'][0]['id']
+        calendar_events= service.events().list(calendarId=calender_id).execute()
+        print(calendar_events['items'][0])
+        event={
+        'summary': title,
+        #'location': '800 Howard St., San Francisco, CA 94103',
+        'description': title,
+        'start': {
+        'dateTime': start_time.strftime("%Y-%m-%dT%H:%M:%S"),
+        'timeZone': time_zone,
+        },
+        'end': {
+        'dateTime': end_time.strftime("%Y-%m-%dT%H:%M:%S"),
+        'timeZone': time_zone,
+        },
+        "conferenceData": {
+        "createRequest": {
+        "conferenceSolutionKey": {
+          "type": "hangoutsMeet"
+        },
+        "requestId": "some-random-string2"
+        }
+        },
+        'attendees': emails,
+        'reminders': {
+        'useDefault': False,
+        'overrides': [
+        {'method': 'email', 'minutes': 24 * 60},
+        {'method': 'popup', 'minutes': 10},
+        ],
+        },
+        }
+        event = service.events().insert(calendarId=calender_id, 
+        conferenceDataVersion= 1,body=event, sendNotifications=True).execute()
+        print('Event created: %s' % (event.get('htmlLink')))
+        #create_event=service.events.insert(calendarId=calender_id, body=event).execute()
+        #print(create_event)
+    else:      
+        scopes = ['https://www.googleapis.com/auth/calendar']
+        flow = InstalledAppFlow.from_client_secrets_file("client_secret.json", scopes=scopes)
+        credentials = flow.run_console()
+        pickle.dump(credentials, open("token.pkl","wb"))
+        credentials=pickle.load(open("token.pkl", "rb"))
+        service = build("calendar", "v3", credentials=credentials)
+        result=service.calendarList().list().execute()
+        print(result['items'][0]['id'])
+        calender_id=result['items'][0]['id']
+        calendar_events= service.events().list(calendarId=calender_id).execute()
+        print(calendar_events['items'][0])
+        event={
+        'summary': 'Google I/O 2015',
+        'location': '800 Howard St., San Francisco, CA 94103',
+        'description': 'A chance to hear more about Google\'s developer products.',
+        'start': {
+        'dateTime': start_time.strftime("%Y-%m-%dT%H:%M:%S"),
+        'timeZone': time_zone,
+        },
+        'end': {
+        'dateTime': end_time.strftime("%Y-%m-%dT%H:%M:%S"),
+        'timeZone': time_zone,
+        },
+        #'attendees': [
+        #{'email': 'advik.dangwal0909@gmail.com'}
+        #],
+        'attendees': emails,
+        'reminders': {
+        'useDefault': False,
+        'overrides': [
+        {'method': 'email', 'minutes': 24 * 60},
+        {'method': 'popup', 'minutes': 10},
+        ],
+        },
+        }
+        event = service.events().insert(calendarId=calender_id, body=event, sendNotifications=True).execute()
+        print('Event created: %s' % (event.get('htmlLink')))
     
