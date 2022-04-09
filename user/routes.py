@@ -75,10 +75,20 @@ def user_exists(username):
 
     return jsonify({"result": False}), 404
 
-
+#Gets the details of logged in user.
 @user_blueprint.route('/', methods=['GET'])
 def get_current_user():
     if current_user.is_authenticated:
         return jsonify({'result': current_user.serialize()}), 200
     else:
         return jsonify({'message': "User not logged in"}), 401
+
+
+@user_blueprint.route('/<id>', methods=['GET'])
+def get_user(id):
+    user = User.query.filter_by(id=id).first()
+    if user:
+        response = {"result":user.serialize()}
+    else:
+        response = {"user":"No user found"}
+    return jsonify(response)

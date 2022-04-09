@@ -34,6 +34,7 @@ class User(db.Model, UserMixin):
             'is_admin': self.is_admin,
             'api_key': self.api_key,
             'is_active': self.is_active,
+            'email':self.email,
             'role':self.role,
         }
 
