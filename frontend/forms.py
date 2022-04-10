@@ -24,7 +24,7 @@ class AddNewBookForm(FlaskForm):
     slug = StringField('Slug', validators=[DataRequired()])
     #price = IntegerField('Price')
     #image= StringField('Image')
-    author_name = IntegerField('Author Name')
+    author_name = StringField('Author Name')
     published_year= StringField('Published Year')
     upload = FileField("Please select an image to upload", validators=[InputRequired()])
     #file = FileField("File")

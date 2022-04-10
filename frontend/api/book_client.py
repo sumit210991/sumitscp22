@@ -27,5 +27,6 @@ class BookClient:
         response = requests.request("POST", url=url, data=payload)
         if response:
             book = response.json()
+            print(book)
         return book
     

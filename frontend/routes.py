@@ -10,8 +10,13 @@ from apiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 import pickle
 import requests
+from flask import Response
 import json
 from datetime import datetime, timedelta
+#from helper.queue_helper import SQSHelper
+from helper.s3_helper import Upload_File
+import webbrowser
+
 
 blueprint = Blueprint('frontend', __name__)
 
@@ -63,6 +68,7 @@ def index():
          session['order']={}
     try:
         books = BookClient.get_books()
+        session['books']=books
     except:
         books = {'result': []}
 
@@ -183,16 +189,28 @@ def thank_you():
 @blueprint.route('/add_book', methods=['POST','GET'])
 def add_book():
     form = forms.AddNewBookForm()
+    print("before post")
     if request.method == 'POST':
+        print("after post")
         if form.validate_on_submit():
+            print("after submit")
             bookname = form.name.data
             book = BookClient.add_book(form)
+            print(book)
             if book:
                 f = form.upload.data
                 filename = secure_filename(f.filename)
                 print(filename)
-                f.save('uploads/' + bookname+'.pdf')
-                flash("book added.")
+                #f.save('uploads/' + bookname+'.pdf')
+                upload_file=Upload_File()
+                if(upload_file.create_bucket('scpprojbucket')):
+                    isFileUploaded=upload_file.upload_file('scpprojbucket',f,filename)
+                    print(isFileUploaded)
+                    #if file is uploaded then save the details in the database. 
+                    if(isFileUploaded):
+                        flash("book added.")
+                    else:
+                        flash('book not added'+bookname)
             else:
                 flash('book not added'+bookname)
     
@@ -222,8 +240,14 @@ def download(name):
     #path = "uploads/"+str(name)+".pdf"
     #return(send_file(path, as_attachment=True)
     flash("file download")
-    return send_from_directory(directory='uploads', filename=name+".pdf", as_attachment=True, path='D:\Semester 2\SSP\scp\SCP\frontend')
-    
+    file_nm=str(name)+'.pdf'
+    uploaded_file_object=Upload_File()
+    url=uploaded_file_object.get_object_access_url('scpprojbucket', file_nm)
+    webbrowser.open(url, new=2, autoraise=True)
+    flash("file download")
+    return render_template('search_book.html', books=session["books"])
+   
+
 @blueprint.route('/scheduled_classes', methods=['GET'])
 def scheduled_classes():
     #path = "uploads/"+str(name)+".pdf"
