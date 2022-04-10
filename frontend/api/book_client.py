@@ -20,11 +20,12 @@ class BookClient:
         payload = {
             'name': form.name.data,
             'slug': form.slug.data,
-            'price': form.price.data,
-            'image' : form.image.data
+            'author_name': form.author_name.data,
+            'published_year' : form.published_year.data
         }
         url = BOOK_API_URL + '/api/book/create'
         response = requests.request("POST", url=url, data=payload)
         if response:
             book = response.json()
         return book
+    

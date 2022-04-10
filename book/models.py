@@ -12,8 +12,10 @@ class Book(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(255), unique=True, nullable=False)
     slug = db.Column(db.String(255), unique=True, nullable=False)
-    price = db.Column(db.Integer, nullable=True)
-    image = db.Column(db.String(255))
+    #price = db.Column(db.Integer, nullable=True)
+    #image = db.Column(db.String(255))
+    author_name = db.Column(db.String(150), nullable=False)
+    published_year = db.Column(db.String(255))
 
     def __repr__(self):
         return f'<book {self.id} {self.name}>'
@@ -23,6 +25,6 @@ class Book(db.Model):
             'id': self.id,
             'name': self.name,
             'slug': self.slug,
-            'price': self.price,
-            'image': self.image,
+            'author_name': self.author_name,
+            'published_year': self.published_year,
         }

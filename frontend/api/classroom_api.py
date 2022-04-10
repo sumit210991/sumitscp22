@@ -19,3 +19,9 @@ class ClassroomClient:
         response = requests.post(url, data=payload)
 
         return response.json()
+
+    @staticmethod
+    def get_scheduled_meetings(user_id):
+        response = requests.get(CLASSROOM_API_URL + '/api/classroom/' + str(user_id))
+        
+        return response.json()

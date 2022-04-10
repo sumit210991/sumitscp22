@@ -36,6 +36,10 @@
                 {% if session['user'].get("role") == 'teacher' %}
                 <a class="nav-link" href="/add_book">Add a Book</a>
                 <a class="nav-link" href="/classroom_booking">book classroom</a>
+                <a class="nav-link" href="/create_assignment">Create Assignment</a>
+                {% endif %}
+                {% if session['user'].get("role") == 'student' %}
+                <a class="nav-link" href="/scheduled_classes">scheduled classes</a>
                 {% endif %}
                 <a class="nav-link" href="/search_books">search books</a>
                 <a class="nav-link" href="/logout">Logout</a>

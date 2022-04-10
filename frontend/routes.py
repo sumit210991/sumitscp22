@@ -224,7 +224,15 @@ def download(name):
     flash("file download")
     return send_from_directory(directory='uploads', filename=name+".pdf", as_attachment=True, path='D:\Semester 2\SSP\scp\SCP\frontend')
     
-
+@blueprint.route('/scheduled_classes', methods=['GET'])
+def scheduled_classes():
+    #path = "uploads/"+str(name)+".pdf"
+    #return(send_file(path, as_attachment=True)
+    userid=session['user'].get("id")
+    classes = ClassroomClient.get_scheduled_meetings(userid)
+    print(classes['result'])
+    return render_template('scheduled_classes.html', classes=classes)
+    
 @blueprint.route('/classroom_booking', methods=['GET','POST'])
 def classroom_booking():
     students=UserClient.get_users()
@@ -254,6 +262,24 @@ def block_calender():
     flash("Notified "+ str(studentnames))
     students=UserClient.get_users()
     return render_template('book_meeting.html', students=students)
+
+@blueprint.route('/create_assignment', methods=['POST','GET'])
+def createassignment():
+    form = forms.CreateAssignmentForm()
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            sids = form.studentids.data
+            book = BookClient.add_book(form)
+            if book:
+                f = form.upload.data
+                filename = secure_filename(f.filename)
+                print(filename)
+                f.save('uploads/' + bookname+'.pdf')
+                flash("book added.")
+            else:
+                flash('book not added'+bookname)
+    
+    return render_template('create_assignment.html', form=form)
 
 
 def use_google_calender(state_date, emails,meetingduration, title):

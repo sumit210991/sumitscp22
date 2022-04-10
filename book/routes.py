@@ -22,8 +22,8 @@ def create_books():
         book = Book()
         book.name = request.form['name']
         book.slug = request.form['slug']
-        book.image = request.form['image']
-        book.price = request.form['price']
+        book.author_name = request.form['author_name']
+        book.published_year = request.form['published_year']
         #file_content=request.FILES['upload']
         #if(upload_file.create_bucket('elearningbucket')):
          #   isFileUploaded=upload_file.upload_file('elearningbucket',file_content,book.name)

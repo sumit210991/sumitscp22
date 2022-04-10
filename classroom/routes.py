@@ -54,3 +54,17 @@ def create_classrooms():
     return jsonify(response)
 
 
+@classroom_blueprint.route('/<invitee_id>', methods=['GET'])
+def get_meeting(invitee_id):
+    meetings = VirtualClassroomInvitee.query.filter_by(invitee_id=invitee_id).all()
+    meets = [meet.serialize() for meet in meetings]
+    scheduled_classes=[]
+    print(meets)
+    for m in meets:
+        vc = VirtualClassroom.query.filter_by(id = m['meeting_id']).first()
+        scheduled_classes.append(vc.serialize())
+    #response = VirtualClassroom.query.filter(VirtualClassroom.id.in_(meetings['meeting_id'])).all()
+
+
+    response = {"result":scheduled_classes}
+    return jsonify(response)
