@@ -13,7 +13,7 @@ import requests
 from flask import Response
 import json
 from datetime import datetime, timedelta
-#from helper.queue_helper import SQSHelper
+from helper.queue_helper import SQSHelper
 from helper.s3_helper import Upload_File
 import webbrowser
 
@@ -262,6 +262,13 @@ def classroom_booking():
     students=UserClient.get_users()
     return render_template('book_meeting.html', students=students)
 
+@blueprint.route('/get_students', methods=['GET','POST'])
+def get_students():
+    students=UserClient.get_users()
+    session['students']=students
+    form = forms.CreateAssignmentForm()
+    return render_template('create_assignment.html', students=students, form=form)
+
 @blueprint.route('/block_calendar', methods=['GET', 'POST'])
 def block_calender():
     form = request.form
@@ -292,18 +299,51 @@ def createassignment():
     form = forms.CreateAssignmentForm()
     if request.method == 'POST':
         if form.validate_on_submit():
-            sids = form.studentids.data
-            book = BookClient.add_book(form)
-            if book:
-                f = form.upload.data
-                filename = secure_filename(f.filename)
+            sids = form.student_ids.data
+            attendent_emails=[]
+            organizer_email=session['user'].get("email")
+            idarray = sids.split(',')
+            for id in idarray:
+                print(id)
+                userdetail = UserClient.get_userbyid(id)
+                attendent_email=userdetail["result"].get("email")
+                print(attendent_email)
+                attendent_emails.append(attendent_email)
+            attendent_emails.append(organizer_email)
+            print(attendent_emails)
+            #book = BookClient.add_book(form)
+            #if book:
+            f = form.upload.data
+            filename = secure_filename(f.filename)
+            #upload assignment file to s3
+            upload_file=Upload_File()
+            if(upload_file.create_bucket('scpprojbucket')):
+                isFileUploaded=upload_file.upload_file('scpprojbucket',f,filename)
+                print(isFileUploaded)
+                #if file is uploaded then save the details in the database. 
+                if(isFileUploaded):
+                    #get file url from s3
+                    uploaded_file_object=Upload_File()
+                    url=uploaded_file_object.get_object_access_url('scpprojbucket', filename)
+                    #push message to the SQS queue
+                    sqsobj= SQSHelper()       
+                    data={"emailIds": attendent_emails, "assignment_url": str(url)}
+                    #checks if message is sent successfully. 
+                    isMessageSent=sqsobj.send_message(data)
+                    print(isMessageSent)
+                    if(isMessageSent):
+                        flash("assignment sent successfully.")
+                    else:
+                        flash('book not added'+bookname)
+                
                 print(filename)
-                f.save('uploads/' + bookname+'.pdf')
+                #f.save('uploads/' + bookname+'.pdf')
                 flash("book added.")
             else:
                 flash('book not added'+bookname)
-    
-    return render_template('create_assignment.html', form=form)
+
+    return render_template('create_assignment.html', students=session['students'], form=form)
+    #return render_template('create_assignment.html', form=form)
 
 
 def use_google_calender(state_date, emails,meetingduration, title):

@@ -41,7 +41,7 @@ class Upload_File(object):
                #response=s3.download_fileobj(bucket_name, file_name, f)
             response = s3.download_file(bucket_name, file_name, "attachments")
             #response=s3.download_file(Bucket=bucket_name, Key=file_name, Filename=file_name)
-        return response
+            return response
             
         except ClientError as ex:
             print(ex)
